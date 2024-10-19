@@ -9,5 +9,7 @@ void drawGround() ;
 void drawSkyWithStars();
 void DrawHealthBar();
 extern int HeartsAvail;
-
+extern float cloudOffset;
+extern float cloudSpeed ;
+extern float cloudDirection ;
 #endif /* GameBoundaries_hpp */

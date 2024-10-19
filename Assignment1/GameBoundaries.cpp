@@ -7,6 +7,10 @@
 #include <ctime>
 
 int HeartsAvail = 5;
+float cloudOffset = 0.0f;
+float cloudSpeed = 0.5f;
+float cloudDirection = 1.0f;
+
 
 struct Bird {
     float x, y;
@@ -189,28 +193,53 @@ void drawSkyWithStars() {
         
     }
     
-    // Set cloud color to white
+    // Draw the cloud with animation
+       glPushMatrix();
+       glTranslatef(cloudOffset, 0, 0);
+
        glColor3f(1.0f, 1.0f, 1.0f);
-
-       // Begin drawing the cloud using GL_POLYGON
-       glBegin(GL_POLYGON);
-
-       // Define vertices to create a curved cloud shape
-       glVertex2f(200.0f, 900.0f);  // Leftmost part
-       glVertex2f(220.0f, 920.0f);  // Curving upward
-       glVertex2f(260.0f, 930.0f);  // Peak of the curve
-       glVertex2f(300.0f, 920.0f);  // Slightly down
-       glVertex2f(340.0f, 930.0f);  // Another peak
-       glVertex2f(380.0f, 910.0f);  // Curve back down
-       glVertex2f(400.0f, 900.0f);  // Bottom right part
-       glVertex2f(370.0f, 880.0f);  // Bottom curve
-       glVertex2f(330.0f, 870.0f);  // Continuing the curve
-       glVertex2f(290.0f, 880.0f);  // Bottom middle
-       glVertex2f(250.0f, 870.0f);  // Bottom left
-       glVertex2f(220.0f, 880.0f);  // Left curve
-
-       // End of cloud shape
+       glBegin(GL_QUADS);
+       glVertex2f(200.0f, 850.0f);
+       glVertex2f(400.0f, 850.0f);
+       glVertex2f(400.0f, 890.0f);
+       glVertex2f(200.0f, 890.0f);
        glEnd();
-    
+
+       glBegin(GL_TRIANGLE_FAN);
+       glVertex2f(230.0f, 890.0f);
+       int triangleAmount = 30;
+       float angleStep = M_PI / triangleAmount;
+       float radius = 30.0f;
+       for (int i = 0; i <= triangleAmount; ++i) {
+           float angle = i * angleStep;
+           float x = 230.0f + cos(angle) * radius;
+           float y = 890.0f + sin(angle) * radius;
+           glVertex2f(x, y);
+       }
+       glEnd();
+
+       glBegin(GL_TRIANGLE_FAN);
+       glVertex2f(300.0f, 890.0f);
+       radius = 40.0f;
+       for (int i = 0; i <= triangleAmount; ++i) {
+           float angle = i * angleStep;
+           float x = 300.0f + cos(angle) * radius;
+           float y = 890.0f + sin(angle) * radius;
+           glVertex2f(x, y);
+       }
+       glEnd();
+
+       glBegin(GL_TRIANGLE_FAN);
+       glVertex2f(370.0f, 890.0f);
+       radius = 30.0f;
+       for (int i = 0; i <= triangleAmount; ++i) {
+           float angle = i * angleStep;
+           float x = 370.0f + cos(angle) * radius;
+           float y = 890.0f + sin(angle) * radius;
+           glVertex2f(x, y);
+       }
+       glEnd();
+
+       glPopMatrix();
     
 }

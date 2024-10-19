@@ -22,7 +22,7 @@ int DodgeObstacleXposition=1920;
 int PowerUp1Xposition = 1920;
 int PowerUp2Xposition=1920;
 int playerYPosition=0;
-int UpVelocity=22.5f;
+int UpVelocity=23.0f;
 float velocity = 0.0f;
 float gravity=-1.3f;
 bool isDodged=false;
@@ -33,7 +33,7 @@ int ObstacleProb=70;
 int CollectibleProb=20;
 int PowerUpProb=10;
 int screenWidth = 1920;
-int totalTimeInSeconds = 30;
+int totalTimeInSeconds =120;
 int shieldTimeLeft = 0;
 int jumpPowerUpTimeLeft=0;
 float playerScaleX=1;
@@ -95,19 +95,19 @@ void countdownTimer(int value) {
 
 void JumpdownTimer(int x) {
     if (jumpPowerUpTimeLeft > 0) {
-        jumpPowerUpTimeLeft--;
-        glutTimerFunc(1000, JumpdownTimer, 0);
-    } else {
-        UpVelocity = 22.5;
-        jumpPowerUpTimeLeft = 0; // Ensure the timer is zero.
-       
-    }
+          jumpPowerUpTimeLeft--;
+          glutTimerFunc(1000, JumpdownTimer, 0);
+      } else {
+              UpVelocity = 23;
+              jumpPowerUpTimeLeft = 0;
+        
+      }
     glutPostRedisplay();
 }
 void ShieldTimer(int value) {
     if (shieldTimeLeft > 0) {
-        shieldTimeLeft--;  // Decrease the shield timer.
-        glutTimerFunc(1000, ShieldTimer, 0);  // Call the function every second.
+        shieldTimeLeft--;
+        glutTimerFunc(1000, ShieldTimer, 0);
     } else {
         isShield = false;
     }
@@ -153,7 +153,7 @@ void output(int x, int y, float r, float g, float b, void* font, const char* str
 
 void emitAsset(int random,int Option) {
     int type=-1;
-    
+    printf("%d/n",random);
     if(random<ObstacleProb) type=0;
     else
         if(random<ObstacleProb+CollectibleProb) type=1;
@@ -309,6 +309,7 @@ void updatePlayerPosition() {
            GameSpeed=8;
            
        } else if (totalTimeInSeconds <= 90 && totalTimeInSeconds > 60) {
+           
            GameFrequency=1500;
            GameSpeed=10;
            IncreaseGameSpeed(0);
@@ -403,6 +404,10 @@ void updatePlayerPosition() {
             velocity = 0.0f;
         }
     }
+    cloudOffset += cloudSpeed * cloudDirection;
+       if (cloudOffset >= 100.0f || cloudOffset <= -100.0f) {
+           cloudDirection *= -1.0f; 
+       }
     
     glutPostRedisplay();
 }
