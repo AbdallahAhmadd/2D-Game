@@ -33,7 +33,7 @@ int ObstacleProb=70;
 int CollectibleProb=20;
 int PowerUpProb=10;
 int screenWidth = 1920;
-int totalTimeInSeconds = 120;
+int totalTimeInSeconds = 30;
 int shieldTimeLeft = 0;
 int jumpPowerUpTimeLeft=0;
 float playerScaleX=1;
@@ -307,6 +307,7 @@ void updatePlayerPosition() {
            GameFrequency=2000;
            AssetMovingSpeed = 8;  // Initial speed.
            GameSpeed=8;
+           
        } else if (totalTimeInSeconds <= 90 && totalTimeInSeconds > 60) {
            GameFrequency=1500;
            GameSpeed=10;
@@ -316,7 +317,7 @@ void updatePlayerPosition() {
            GameSpeed=12;
            IncreaseGameSpeed(0);
        } else if (totalTimeInSeconds <= 30) {
-           GameFrequency=650;
+           GameFrequency=700;
            GameSpeed=14.0;
            IncreaseGameSpeed(0);
        }
@@ -373,7 +374,11 @@ void updatePlayerPosition() {
      
     if (collidedWithObstacle) {
             for (auto& asset : assets) {
+                if(totalTimeInSeconds>60)
                 asset.x += 500;
+                else
+                    if(totalTimeInSeconds>=0)
+                        asset.x += 600;
             }
         for (auto it = assets.begin(); it != assets.end(); ) {
             if (it->x > 1600) {
