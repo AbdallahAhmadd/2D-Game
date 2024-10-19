@@ -15,8 +15,6 @@
 #include "DrawObtacle.hpp"
 #include "SoundManager.hpp"
 
-
-
 int obstacleXposition=1920;
 int GemXposition=1920;
 int playerXPosition=0;
@@ -24,28 +22,31 @@ int DodgeObstacleXposition=1920;
 int PowerUp1Xposition = 1920;
 int PowerUp2Xposition=1920;
 int playerYPosition=0;
-int UpVelocity=21.0f;
+int UpVelocity=22.5f;
 float velocity = 0.0f;
 float gravity=-1.3f;
 bool isDodged=false;
 bool isJumping= false;
 bool isShield=false;
 int Score = 0;
-int ObstacleProb=60;
-int CollectibleProb=25;
-int PowerUpProb=15;
+int ObstacleProb=70;
+int CollectibleProb=20;
+int PowerUpProb=10;
 int screenWidth = 1920;
-int totalTimeInSeconds = 10;
+int totalTimeInSeconds = 120;
 int shieldTimeLeft = 0;
 int jumpPowerUpTimeLeft=0;
 float playerScaleX=1;
-int AssetMovingSpeed=10;
+
 int BounceDirection=1;
 int BounceOffset=0;
 float ScaleXAnimation=1;
 float ScaleYAnimation=1;
 static bool gameOverPlayed = false;
 static bool gameWinPlayed = false;
+float AssetMovingSpeed=8;
+float GameSpeed = 8;
+int GameFrequency=2000;
 
 
 struct Asset {
@@ -97,7 +98,9 @@ void JumpdownTimer(int x) {
         jumpPowerUpTimeLeft--;
         glutTimerFunc(1000, JumpdownTimer, 0);
     } else {
-        UpVelocity = 21;
+        UpVelocity = 22.5;
+        jumpPowerUpTimeLeft = 0; // Ensure the timer is zero.
+       
     }
     glutPostRedisplay();
 }
@@ -187,15 +190,20 @@ void drawAsset(const Asset& asset) {
 
 
 void Timer(int value) {
-    int randomType = rand() % 100;  // Choose a random asset type (0-3)
+    int randomType = rand() % 100;
     int randomOption= rand()%2;
-    emitAsset(randomType,randomOption);  // Emit the new asset
-    glutTimerFunc(1000, Timer, 0);  // Schedule the next emission
+    emitAsset(randomType,randomOption);
+    glutTimerFunc(GameFrequency, Timer, 0);
 }
 
 void UpdateScore(int value) {
-    if(HeartsAvail>0 && totalTimeInSeconds>0){
+    if(HeartsAvail>0 && totalTimeInSeconds>=60 ){
         Score += 10;
+        glutPostRedisplay();
+        glutTimerFunc(1000, UpdateScore, 0);
+    }
+    else if(HeartsAvail>0 &&totalTimeInSeconds>0){
+        Score += 20;
         glutPostRedisplay();
         glutTimerFunc(1000, UpdateScore, 0);
     }
@@ -249,7 +257,7 @@ bool checkCollision(const Asset& asset) {
     if (collisionX && collisionY) {
         if (asset.type == 2 && asset.option==0) {
                UpVelocity = 30;
-                jumpPowerUpTimeLeft=5;
+               jumpPowerUpTimeLeft=5;
                glutTimerFunc(1000, JumpdownTimer, 0);
            }
         if(asset.type==2 && asset.option==1){
@@ -272,7 +280,13 @@ bool checkCollision(const Asset& asset) {
    }
 
 void IncreaseGameSpeed(int value){
-    AssetMovingSpeed=10;
+    if(AssetMovingSpeed<GameSpeed){
+        AssetMovingSpeed+=0.1;
+        if(AssetMovingSpeed>GameSpeed){
+            AssetMovingSpeed=GameSpeed;
+        }
+        glutTimerFunc(30, IncreaseGameSpeed, 0);
+    }
 }
 
 
@@ -288,6 +302,24 @@ void updatePlayerPosition() {
         playSound("Gameover");
         gameOverPlayed=true;
     }
+    // Increase speed based on remaining time
+       if (totalTimeInSeconds <= 120 && totalTimeInSeconds > 90) {
+           GameFrequency=2000;
+           AssetMovingSpeed = 8;  // Initial speed.
+           GameSpeed=8;
+       } else if (totalTimeInSeconds <= 90 && totalTimeInSeconds > 60) {
+           GameFrequency=1500;
+           GameSpeed=10;
+           IncreaseGameSpeed(0);
+       } else if (totalTimeInSeconds <= 60 && totalTimeInSeconds > 30) {
+           GameFrequency=1000;
+           GameSpeed=12;
+           IncreaseGameSpeed(0);
+       } else if (totalTimeInSeconds <= 30) {
+           GameFrequency=650;
+           GameSpeed=14.0;
+           IncreaseGameSpeed(0);
+       }
     
     
     //powerups animation
@@ -338,15 +370,22 @@ void updatePlayerPosition() {
            }
        }
 
-       // If a collision with an obstacle occurred, move all assets (including collided obstacles)
-       if (collidedWithObstacle) {
-           for (auto& asset : assets) {
-               asset.x += 450;// Translate all assets by 450 units to the right
-           }
-           AssetMovingSpeed=7;
-           collidedWithObstacle=false;
-           glutTimerFunc(1000, IncreaseGameSpeed, 0);
-       }
+     
+    if (collidedWithObstacle) {
+            for (auto& asset : assets) {
+                asset.x += 500;
+            }
+        for (auto it = assets.begin(); it != assets.end(); ) {
+            if (it->x > 1600) {
+                it = assets.erase(it);
+            } else {
+                ++it;
+            }
+        }
+            AssetMovingSpeed = AssetMovingSpeed*0.7;
+            collidedWithObstacle = false;
+            glutTimerFunc(1000, IncreaseGameSpeed, 0);
+    }
 
     
     if (isJumping) {
@@ -410,7 +449,7 @@ void Display() {
     int minutes = totalTimeInSeconds / 60;
     int seconds = totalTimeInSeconds % 60;
     char timeString[16];
-    sprintf(timeString, "%02d:%02d", minutes, seconds);
+    sprintf(timeString, "Time:%02d:%02d", minutes, seconds);
     
     output(1700, 850, 1.0f, 0.0f, 0.0f, GLUT_BITMAP_HELVETICA_18, timeString);
     char scoreText[16];
@@ -439,8 +478,12 @@ void Display() {
     }
     if (HeartsAvail != 0 && totalTimeInSeconds==0) {
         char GameWin[32];
+        char EndScore[16];
         sprintf(GameWin, "Winner Winner!");
+        sprintf(EndScore, "Score:%d",Score);
         renderBoldStrokeText(60, 1080/2, 2, 0, 1, 0, GameWin);
+        renderBoldStrokeText(1000, 1080/4, 1, 1, 0, 0, EndScore);
+      
        
     }
     drawGround();
